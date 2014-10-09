@@ -1,4 +1,4 @@
-# Sailor Module Messenger
+# Sailor Module Message
 
 [![Build Status](http://img.shields.io/travis/sailorjs/sailor-module-messenger/master.svg?style=flat)](https://travis-ci.org/sailorjs/sailor-module-messenger)
 [![Dependency status](http://img.shields.io/david/sailorjs/sailor-module-messenger.svg?style=flat)](https://david-dm.org/sailorjs/sailor-module-messenger)
