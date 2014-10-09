@@ -1,7 +1,8 @@
 ## -- Dependencies -------------------------------------------------------------
 
-async   = require 'async'
-request = require 'superagent'
+async       = require 'async'
+request     = require 'superagent'
+url_default = 'http://localhost:1337/user'
 
 ## -- Class -------------------------------------------------------------
 class UserHelper
@@ -18,8 +19,8 @@ class UserHelper
     email: "user#{@_count}@sailor.com"
     password: "password"
 
-  register:(n=1, url, cb) ->
-    _register = (c) => request.post(url).send(@generate()).end(c)
+  register:(n=1, cb) ->
+    _register = (c) => request.post(url_default).send(@generate()).end(c)
     exec = []
     exec.push _register for i in [1..n]
     async.parallel(exec, -> cb())
