@@ -1,0 +1,37 @@
+{
+  "name": "sailor-module-message",
+  "description": "Messaging System between Users",
+  "version": "0.0.0",
+  "author": {
+    "name": "Kiko Beats",
+    "email": "josefrancisco.verdu@gmail.com",
+    "url": "https://github.com/Kikobeats"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "coffee-script": "*",
+    "grunt": "*",
+    "grunt-contrib-watch": "*",
+    "grunt-translate-compile": "git://github.com/sailorjs/translate-compile",
+    "load-grunt-tasks": "*",
+    "mocha": "*",
+    "sailorjs": "git://github.com/sailorjs/sailorjs",
+    "should": "*",
+    "superagent": "*"
+  },
+  "engines": {},
+  "homepage": "",
+  "keywords": [
+    "sailor",
+    "module"
+  ],
+  "license": "MIT",
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/sailorjs/sailor-module-message.git"
+  },
+  "scripts": {
+    "test": "sh test/test.sh"
+  }
+}
