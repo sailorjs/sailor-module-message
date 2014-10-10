@@ -45,6 +45,8 @@ module.exports = (req, res) ->
       Message.create(message).exec (err, newInstance) ->
         return res.negotiate(err)  if err
 
+        ## TODO: Put in the inbox of user in the correct collection
+
         # Use find method to return the model for the populate option
         Message.findOne(newInstance.id).populateAll().exec (err, newInstance) ->
 
