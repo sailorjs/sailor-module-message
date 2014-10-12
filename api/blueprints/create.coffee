@@ -21,6 +21,11 @@ Optional:
 @param {*} * - other params will be used as `values` in the create
 ###
 module.exports = (req, res) ->
+  req.assert('from', translate.get "Message.From.NotFound").notEmpty()
+  req.assert('to', translate.get "Message.To.NotFound").notEmpty()
+  req.assert('text', translate.get "Message.Text.NotFound").notEmpty()
+  return res.badRequest(errorify.serialize(req)) if req.validationErrors()
+
   from     = req.param 'from'
   to       = req.param 'to'
   text     = req.param 'text'
@@ -31,10 +36,11 @@ module.exports = (req, res) ->
     User.findOne(to).exec (err, friend) ->
       return res.badRequest(err)  if err
 
-      unless user and friend
+      unless user and friend and text
         errors = []
         errorify.addError(errors, 'from', translate.get("Model.NotFound")) unless user
         errorify.addError(errors, 'to', translate.get("Model.NotFound")) unless friend
+        errorify.addError(errors, 'text', 'NO TEXT') unless text
         return res.notFound(errorify.serialize(errors))
 
       message =
