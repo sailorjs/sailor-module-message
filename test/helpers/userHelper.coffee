@@ -1,10 +1,11 @@
-## -- Dependencies -------------------------------------------------------------
+## -- Dependencies ------------------------------------------------------
 
-async       = require 'async'
-request     = require 'superagent'
-url_default = 'http://localhost:1337/user'
+async   = require 'async'
+request = require 'superagent'
+url     = require './urlHelper'
 
 ## -- Class -------------------------------------------------------------
+
 class UserHelper
 
   constructor: ->
@@ -20,12 +21,11 @@ class UserHelper
     password: "password"
 
   register:(n=1, cb) ->
-    _register = (c) => request.post(url_default).send(@generate()).end(c)
+    _register = (c) => request.post(url.user.create()).send(@generate()).end(c)
     exec = []
     exec.push _register for i in [1..n]
     async.parallel(exec, -> cb())
 
-
-## -- Exports -------------------------------------------------------------
+## -- Exports -----------------------------------------------------------
 
 module.exports = exports = new UserHelper()
