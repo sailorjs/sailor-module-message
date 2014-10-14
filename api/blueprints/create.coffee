@@ -30,17 +30,16 @@ module.exports = (req, res) ->
   to       = req.param 'to'
   text     = req.param 'text'
 
-  User.findOne(from).exec (err, user) ->
+  User.findOne(from).populate('outbox').exec (err, user) ->
     return res.badRequest(err)  if err
 
-    User.findOne(to).exec (err, friend) ->
+    User.findOne(to).populate('inbox').exec (err, friend) ->
       return res.badRequest(err)  if err
 
-      unless user and friend and text
+      unless (user or friend)
         errors = []
-        errorify.addError(errors, 'from', translate.get("Model.NotFound")) unless user
-        errorify.addError(errors, 'to', translate.get("Model.NotFound")) unless friend
-        errorify.addError(errors, 'text', 'NO TEXT') unless text
+        errorify.addError(errors, 'from', translate.get("Message.From.NotFound")) unless user
+        errorify.addError(errors, 'to', translate.get("Message.To.NotFound")) unless friend
         return res.notFound(errorify.serialize(errors))
 
       message =
@@ -51,17 +50,21 @@ module.exports = (req, res) ->
       Message.create(message).exec (err, newInstance) ->
         return res.negotiate(err)  if err
 
-        ## TODO: Put in the inbox of user in the correct collection
+        # put the message in the user inbox and outbox
+        user.addOutbox newInstance, (err, message) ->
+          return res.negotiate(err)  if err
+          friend.addInbox newInstance, (err, message) ->
+            return res.negotiate(err)  if err
 
-        # Use find method to return the model for the populate option
-        Message.findOne(newInstance.id).populateAll().exec (err, newInstance) ->
+            # Use find method to return the model for the populate option
+            Message.findOne(newInstance.id).populateAll().exec (err, newInstance) ->
 
-          # If we have the pubsub hook, use the model class's publish method
-          # to notify all subscribers about the created item
-          if req._sails.hooks.pubsub
-            if req.isSocket
-              Message.subscribe req, newInstance
-              Message.introduce newInstance
-            Message.publishCreate newInstance, not req.options.mirror and req
+              # If we have the pubsub hook, use the model class's publish method
+              # to notify all subscribers about the created item
+              if req._sails.hooks.pubsub
+                if req.isSocket
+                  Message.subscribe req, newInstance
+                  Message.introduce newInstance
+                Message.publishCreate newInstance, not req.options.mirror and req
 
-          res.created newInstance
+              res.created newInstance
