@@ -2,9 +2,10 @@
 Dependencies
 ###
 sailor     = require 'sailorjs'
-translate  = sailor.translate
+actionUtil = sailor.actionUtil
 validator  = sailor.validator
 errorify   = sailor.errorify
+translate  = sailor.translate
 
 ###
 Create Record
@@ -20,50 +21,47 @@ Optional:
 @param {*} * - other params will be used as `values` in the create
 ###
 module.exports = (req, res) ->
-  req.assert('from', translate.get "Message.From.NotFound").notEmpty()
-  req.assert('to', translate.get "Message.To.NotFound").notEmpty()
-  req.assert('text', translate.get "Message.Text.NotFound").notEmpty()
-  return res.badRequest(errorify.serialize(req)) if req.validationErrors()
+  validator
+    .begin(req, res)
+    .add 'from', translate.get('Message.From.NotFound'), 'notEmpty'
+    .add 'to', translate.get('Message.To.NotFound'), 'notEmpty'
+    .add 'text', translate.get('Message.Text.NotFound'), 'notEmpty'
+    .end (params) ->
 
-  from     = req.param 'from'
-  to       = req.param 'to'
-  text     = req.param 'text'
+      User.findOne(params.from).exec (err, from) ->
+        return res.serverError(err)  if err
 
-  User.findOne(from).populate('outbox').exec (err, user) ->
-    return res.badRequest(err)  if err
+        User.findOne(params.to).exec (err, to) ->
+          return res.serverError(err)  if err
 
-    User.findOne(to).populate('inbox').exec (err, friend) ->
-      return res.badRequest(err)  if err
+          unless (from or to)
+            return errorify
+            .add 'from', translate.get('User.NotFound'), from
+            .add 'to', translate.get('User.NotFound'), to
+            .end res, 'notFound'
 
-      unless (user or friend)
-        errors = []
-        errorify.addError(errors, 'from', translate.get("Message.From.NotFound")) unless user
-        errorify.addError(errors, 'to', translate.get("Message.To.NotFound")) unless friend
-        return res.notFound(errorify.serialize(errors))
+          Model = actionUtil.parseModel(req)
+          # Create data object (monolithic combination of all parameters)
+          # Omit the blacklisted params (like JSONP callback param, etc.)
+          data = actionUtil.parseValues(req)
 
-      message =
-        from: user.id
-        to: friend.id
-        text: text
+          # Create new instance of model using data from params
+          Model.create(data).populateAll().exec (err, newInstance) ->
 
-      Message.create(message).exec (err, newInstance) ->
-        return res.negotiate(err)  if err
-
-        # put the message in the user inbox and outbox
-        user.addOutbox newInstance, (err, message) ->
-          return res.negotiate(err)  if err
-          friend.addInbox newInstance, (err, message) ->
+            # Differentiate between waterline-originated validation errors
+            # and serious underlying issues. Respond with badRequest if a
+            # validation error is encountered, w/ validation info.
             return res.negotiate(err)  if err
 
             # Use find method to return the model for the populate option
-            Message.findOne(newInstance.id).populateAll().exec (err, newInstance) ->
+            Model.findOne(newInstance.id).populateAll().exec (err, newInstance) ->
 
               # If we have the pubsub hook, use the model class's publish method
               # to notify all subscribers about the created item
               if req._sails.hooks.pubsub
                 if req.isSocket
-                  Message.subscribe req, newInstance
-                  Message.introduce newInstance
-                Message.publishCreate newInstance, not req.options.mirror and req
+                  Model.subscribe req, newInstance
+                  Model.introduce newInstance
+                Model.publishCreate newInstance, not req.options.mirror and req
 
               res.created newInstance
