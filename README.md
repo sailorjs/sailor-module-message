@@ -10,12 +10,36 @@
 ## Install
 
 ```bash
-npm install sailor-module-messenger
+sailor install sailor-module-message [--save or --save-dev]
 ```
 
-## Usage
-
 ## API
+
+### Basic CRUD
+
+### created a new message
+
+```
+POST /message
+```
+
+The minimum information to create a new message is:
+
+```json
+{
+	to: "userID",
+	from: "userID",
+	text: "yourMessageText"
+}
+```
+
+Additionally you can specify the status. By default the status is `unread`.
+
+
+The rest of CRUD method is following [sailor-module-blueprints](https://github.com/sailorjs/sailor-module-blueprints) schema. 
+
+Check tests for more information and sample usages.
+
 
 ## License
 
