@@ -1,7 +1,7 @@
 {
   "name": "sailor-module-message",
   "description": "Messaging System between Users",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "author": {
     "name": "Kiko Beats",
     "email": "josefrancisco.verdu@gmail.com",
@@ -20,11 +20,11 @@
     "should": "*",
     "superagent": "*"
   },
-  "engines": {},
   "homepage": "",
   "keywords": [
     "sailor",
-    "module"
+    "module",
+    "message"
   ],
   "license": "MIT",
   "main": "",
